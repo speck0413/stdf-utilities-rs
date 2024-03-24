@@ -1,0 +1,120 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug executable 'stdf2text'",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=stdf2text",
+                    "--package=stdf2text"
+                ],
+                "filter": {
+                    "name": "stdf2text",
+                    "kind": "bin"
+                }
+            },
+            "args": ["./stdf-reader/test.stdf.gz", "-p"],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in executable 'stdf2text'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--bin=stdf2text",
+                    "--package=stdf2text"
+                ],
+                "filter": {
+                    "name": "stdf2text",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in library 'stdf_reader'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--lib",
+                    "--package=stdf_reader"
+                ],
+                "filter": {
+                    "name": "stdf_reader",
+                    "kind": "lib"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug integration test 'stdf_reader_tests'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--test=stdf_reader_tests",
+                    "--package=stdf_reader"
+                ],
+                "filter": {
+                    "name": "stdf_reader_tests",
+                    "kind": "test"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug executable 'stdf2csv'",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=stdf2csv",
+                    "--package=stdf2csv"
+                ],
+                "filter": {
+                    "name": "stdf2csv",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in executable 'stdf2csv'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--bin=stdf2csv",
+                    "--package=stdf2csv"
+                ],
+                "filter": {
+                    "name": "stdf2csv",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        }
+    ]
+}

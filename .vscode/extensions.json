@@ -1,0 +1,9 @@
+{
+    "recommendations": [
+        "serayuzgur.crates",
+        "vadimcn.vscode-lldb",
+        "tamasfe.even-better-toml",
+        "jscearcy.rust-doc-viewer",
+        "rust-lang.rust-analyzer"
+    ]
+}

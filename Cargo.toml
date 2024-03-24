@@ -1,0 +1,2 @@
+[workspace]
+members = [ "stdf2text","stdf-reader", "stdf2csv", "stdf2ui"]
