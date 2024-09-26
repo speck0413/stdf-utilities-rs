@@ -1,7 +1,10 @@
-use std::{collections::{BTreeMap, HashMap}, io::Write};
+use std::{collections::{BTreeMap, HashMap}, fs::File, io::{BufReader, Write}};
 use sprintf::sprintf;
 
 mod rec_to_string;
+pub mod stdf_parser;
+
+pub use stdf_parser::*;
 
 use polars;
 use regex::Regex;
@@ -37,6 +40,12 @@ pub struct StdfInfo {
     pub soft_bin: u16,
     pub test_time: Vec<u32>,
     pub test_count: Vec<u16>,
+}
+
+pub struct FirstPassInfo {
+    min_site_num: u8,
+    part_ids: Vec<String>,
+    dtr_info: Vec<DtrInfo>,
 }
 
 pub fn load_dtr_config(config_fname: &Option<String>) -> Vec<DtrConfiguration> {
@@ -247,7 +256,7 @@ fn handle_ftr_defaults(rec: &FTR, test_defaults_ftr: &mut HashMap<u32, FTR>) -> 
 //////////////////////////////////////////////////////////////////////
 /// Description: Makes first pass thru the STDF finding all Test ID's and DTR ID's
 //////////////////////////////////////////////////////////////////////
-pub fn first_pass_stdf(stdf_path: String, dtr_config: &Vec<DtrConfiguration>) -> Result<(u8, Vec<String>, Vec<DtrInfo>), String> {
+pub fn first_pass_stdf(stdf_path: &String, dtr_config: &Vec<DtrConfiguration>) -> Result<FirstPassInfo, String> {
     let mut min_site_num = 255u8;
     let mut part_ids = Vec::<String>::new();
     let mut dtr_info = Vec::<DtrInfo>::new();
@@ -293,7 +302,7 @@ pub fn first_pass_stdf(stdf_path: String, dtr_config: &Vec<DtrConfiguration>) ->
         }
     }
 
-    Ok((min_site_num, part_ids, dtr_info))
+    Ok(FirstPassInfo { min_site_num, part_ids, dtr_info })
 }
 
 fn data_to_string(data: &Option<f32>, scale: &Option<i8>, format: &Option<String>, default: &String) -> String {
@@ -336,7 +345,7 @@ pub fn convert_stdf2csv(stdf_path: &String, csv_path: &String, dtr_cfg_file: &Op
     let mut csv_stdf_summary_file = std::fs::File::create(&csv_stdf_summary_path).expect(format!("Error while trying to create the csv file {}.", &csv_stdf_summary_path).as_str());
 
     // perform first pass through STDF to collect identifiers
-    let (min_site_num, mut part_ids, dtr_ids_and_inject_into) = match first_pass_stdf(stdf_path.to_owned(), &dtr_config) {
+    let mut first_pass_info = match first_pass_stdf(stdf_path, &dtr_config) {
         Ok(tuple) => tuple,
         Err(msg) => return Err(msg)
     };
@@ -357,7 +366,7 @@ pub fn convert_stdf2csv(stdf_path: &String, csv_path: &String, dtr_cfg_file: &Op
     // Write out test header
     /////////////////////////////////////////////////////////
     csv_file.write(b"\"Part ID\",\"TNum\",\"SiteNum\",\"TestText\",\"Context\",\"Low Limit\",\"Result\",\"Hi Limit\"").expect("Error while trying to write to the csv file.");
-    for info in dtr_ids_and_inject_into {
+    for info in first_pass_info.dtr_info {
         let id = info.id.clone();
         let inject_into = info.inject_into.clone();
         if inject_into.contains(&"PTR".into()) || inject_into.contains(&"MPR".into()) || inject_into.contains(&"FTR".into()) {
@@ -386,7 +395,7 @@ pub fn convert_stdf2csv(stdf_path: &String, csv_path: &String, dtr_cfg_file: &Op
 
                 // Test Records
                 StdfRecord::FTR(rec) => {
-                    let part_id = part_ids[usize::from(rec.site_num-min_site_num)].clone();
+                    let part_id = first_pass_info.part_ids[usize::from(rec.site_num-first_pass_info.min_site_num)].clone();
                     let limit = if (rec.test_flg[0] & 0x40) != 0 { "" } else { "1" };
                     let result = if (rec.test_flg[0] & 0x40) != 0 { "" } else { if rec.test_flg[0] == 0 { "1" } else { "0" } };
                     let test_txt = rec.test_txt.replace("\"", "\"\"");
@@ -403,7 +412,7 @@ pub fn convert_stdf2csv(stdf_path: &String, csv_path: &String, dtr_cfg_file: &Op
                 },
 
                 StdfRecord::PTR(rec) => {
-                    let part_id = part_ids[usize::from(rec.site_num-min_site_num)].clone();
+                    let part_id = first_pass_info.part_ids[usize::from(rec.site_num-first_pass_info.min_site_num)].clone();
 
                     let rec = handle_ptr_defaults(&rec, &mut test_defaults_ptr);
 
@@ -422,7 +431,7 @@ pub fn convert_stdf2csv(stdf_path: &String, csv_path: &String, dtr_cfg_file: &Op
                 },
 
                 StdfRecord::MPR(rec) => {
-                    let part_id = part_ids[usize::from(rec.site_num-min_site_num)].clone();
+                    let part_id = first_pass_info.part_ids[usize::from(rec.site_num-first_pass_info.min_site_num)].clone();
 
                     let rec = handle_mpr_defaults(&rec, &mut test_defaults_mpr);
 //
@@ -471,7 +480,7 @@ pub fn convert_stdf2csv(stdf_path: &String, csv_path: &String, dtr_cfg_file: &Op
                     /////////////////////////////////////////////////////////
                     // We've now encountered this Part ID, drop it from the list
                     /////////////////////////////////////////////////////////
-                    part_ids.remove(0);
+                    first_pass_info.part_ids.remove(0);
 
                     /////////////////////////////////////////////////////////
                     // clear dtr info if set
@@ -519,6 +528,40 @@ pub fn convert_stdf2csv(stdf_path: &String, csv_path: &String, dtr_cfg_file: &Op
 
     Ok(())
 }
+
+
+// this needs to be shifted into a structure to be easier to manage.
+// pub fn init_stdf(stdf_path: &String, config_fname: &Option<String>) -> Result<(StdfReader<BufReader<File>>, Vec<DtrConfiguration>, FirstPassInfo), String> {
+//     let dtr_config = load_dtr_config(config_fname);
+//     let first_pass_info = first_pass_stdf(stdf_path, &dtr_config).unwrap_or(FirstPassInfo { min_site_num: 0, part_ids: Vec::new(), dtr_info: Vec::new() });
+//     // open stdf file and start reading
+//     let stdf_reader = match StdfReader::new(&stdf_path) {
+//         // return if successful
+//         Ok(stdf_reader) => stdf_reader,
+
+//         // print full error and return the error message if not
+//         Err(err) => {
+//             println!("Error while loading stdf: {:?}\n", err);
+//             return Err(err.msg);
+//         }
+//     };
+
+//     Ok((stdf_reader, dtr_config, first_pass_info))
+// }
+
+// pub fn next_record(stdf_reader: StdfReader<BufReader<File>>, dtr_config: Vec<DtrConfiguration>, first_pass_info: FirstPassInfo) {
+//     // grab next record
+
+// }
+
+// pub fn read_stdf(stdf_path: &String, config_fname: &Option<String>) -> Result<Vec<StdfRecord>, String> {
+//     let dtr_config = load_dtr_config(config_fname);
+//     let records = Vec::new();
+
+//     let data = first_pass_stdf(stdf_path, &dtr_config).unwrap_or(FirstPassInfo { min_site_num: 0, part_ids: Vec::new(), dtr_info: Vec::new() });
+
+//     Ok(records)
+// }
 
 pub fn convert_stdf2text(stdf_path: &String, txt_path: &String, pretty_print: bool, use_test_defaults: bool) -> Result<(), String> {
     // open csv files or error out
