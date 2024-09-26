@@ -1,10 +1,10 @@
 name: Windows Build and Test
 
 on:
-  #push:
-  #  branches: [ "master" ]
-  #pull_request:
-  #  branches: [ "master" ]
+  push:
+    branches: [ "master" ]
+  pull_request:
+    branches: [ "master" ]
   workflow_dispatch:
     inputs:
       branch:
@@ -22,8 +22,8 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
-        with:
-          ref: ${{ github.ref }}
+      with:
+        ref: ${{ github.ref }}
     - name: Build
       run: |
         rustc --version
