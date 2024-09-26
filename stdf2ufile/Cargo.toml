@@ -1,18 +1,13 @@
 [package]
-name = "stdf2ui"
+name = "stdf2ufile"
 version = "0.1.0"
 edition = "2021"
-linker = "rust-lld"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
 argparse = "0.2.2"
-# color-eyre = "0.6.3"
-crossterm = "0.28"
-ratatui = {version="0.28", features=["all-widgets", "document-features"]}
-regex = "1.10.4"
-sprintf = "0.3"
+regex = "1.10.6"
+sprintf = "0.3.1"
 
 stdf_reader = {version="*", path="../stdf-reader/", features=["gzip", "bzip", "zipfile"]}
-tui-textarea = "0.6"

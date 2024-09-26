@@ -248,7 +248,7 @@ impl StdfParser {
         ret_val
     }
 
-    pub fn next(&mut self) -> Result<(StdfRecord, Vec<DtrInfo>), String> {
+    pub fn next(&mut self) -> Option<Result<(StdfRecord, Vec<DtrInfo>), String>> {
         if let Some(stdf_rec) = self.reader.get_record_iter().next() {
             match stdf_rec {
                 Ok(stdf_rec) => {
@@ -272,14 +272,14 @@ impl StdfParser {
                     // get attached DTR info
                     // let attached_dtr_info = self.get_attached_dtr_info(&ret_rec);
 
-                    Ok((ret_rec, attached_dtr_info))
+                    Some(Ok((ret_rec, attached_dtr_info)))
                 }
-                Err(e) => Err(e.to_string()),
+                Err(e) => Some(Err(e.to_string())),
             }
             // record
             // rec.map_err(|e| e.to_string())
         } else {
-            Err("No record found.".to_string())
+            None
         }
     }
 }

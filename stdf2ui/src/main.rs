@@ -166,24 +166,26 @@ fn stdf_worker(stdf_filename: &String, tx: Sender<WorkerMessage>, rx: Receiver<b
     loop {
         // Loop indefinitely
         // Match the next record from the parser
-        match parser.next() {
-            // For all other record types, do nothing
-            Ok((StdfRecord::MRR(_), _)) => {
-                break;
-            },
-            Ok((StdfRecord::PIR(rec), _)) => {
-                // update site_to_part_idx
-                let site_num = rec.site_num;
-                site_to_part_idx.insert(site_num, part_idx);
-                part_idx = part_idx + 1;
-            },
-            Ok((rec, _)) => {
-                // add to log
-                if let Some(msg) = rec_to_worker_message(&stdf_filename, &site_to_part_idx, &rec) {
-                    tx.send(msg).unwrap();
-                }
-            },
-            Err(_) => {break},
+        if let Some(rec) = parser.next() {
+            match rec {
+                // For all other record types, do nothing
+                Ok((StdfRecord::MRR(_), _)) => {
+                    break;
+                },
+                Ok((StdfRecord::PIR(rec), _)) => {
+                    // update site_to_part_idx
+                    let site_num = rec.site_num;
+                    site_to_part_idx.insert(site_num, part_idx);
+                    part_idx = part_idx + 1;
+                },
+                Ok((rec, _)) => {
+                    // add to log
+                    if let Some(msg) = rec_to_worker_message(&stdf_filename, &site_to_part_idx, &rec) {
+                        tx.send(msg).unwrap();
+                    }
+                },
+                Err(_) => {break},
+            }
         }
 
         if let Ok(should_break) = rx.try_recv() {
