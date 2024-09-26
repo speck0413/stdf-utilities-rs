@@ -1,16 +1,11 @@
 name: Linux Build and Test
 
 on:
-  push:
-    branches: [ "master" ]
-  pull_request:
-    branches: [ "master" ]
+  #push:
+  #  branches: [ "master" ]
+  #pull_request:
+  #  branches: [ "master" ]
   workflow_dispatch:
-    inputs:
-      branch:
-        description: 'Branch to build'
-        required: false
-        default: 'master'
 
 env:
   CARGO_TERM_COLOR: always
@@ -21,7 +16,9 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref }}
     - name: Build
       uses: stevenleadbeater/rust-musl-builder@master
       run: |
