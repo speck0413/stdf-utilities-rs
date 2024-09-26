@@ -6,6 +6,11 @@ on:
   #pull_request:
   #  branches: [ "master" ]
   workflow_dispatch:
+    inputs:
+      logLevel:
+        description: 'Log level'
+        required: false
+        default: 'info'
 
 env:
   CARGO_TERM_COLOR: always
@@ -17,8 +22,8 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
-        with:
-          ref: ${{ github.ref }}
+      with:
+        ref: ${{ github.ref }}
     - name: Build
       uses: stevenleadbeater/rust-musl-builder@master
       run: |
