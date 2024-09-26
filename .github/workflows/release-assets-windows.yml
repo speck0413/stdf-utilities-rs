@@ -24,7 +24,7 @@ jobs:
         run: cargo build --verbose -r --target=x86_64-pc-windows-msvc
       
       - name: Tarball Assets # This would actually build your project, using zip for an example artifact
-        run: tar -czf linux_musl.tgz -C target/x86_64-pc-windows-msvc/release/ libstdf_reader.dll libstdf_reader.lib libstdf_reader.rlib stdf2csv stdf2text stdf2ufile stdf2ui
+        run: tar -czf windows_x86_64.tgz -C target/x86_64-pc-windows-msvc/release/ libstdf_reader.dll libstdf_reader.lib libstdf_reader.rlib stdf2csv stdf2text stdf2ufile stdf2ui
         
       - name: Create Release
         id: create_release
@@ -44,6 +44,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }} # This pulls from the CREATE RELEASE step above, referencing it's ID to get its outputs object, which include a `upload_url`. See this blog post for more info: https://jasonet.co/posts/new-features-of-github-actions/#passing-data-to-future-steps 
-          asset_path: ./linux_musl.tgz
-          asset_name: linux_musl.tgz
+          asset_path: ./windows_x86_64.tgz
+          asset_name: windows_x86_64.tgz
           asset_content_type: application/zip
