@@ -25,9 +25,9 @@ jobs:
       with:
         ref: ${{ github.ref }}
     - uses: MachineDynamo/rust-action@master
-        with:
-          #args: cd integration-test && cargo fmt -- --check && cargo clippy -- -Dwarnings && cargo test
-          args: "cd integration-test; rustup target list; rustc --version; cargo build --target x86_64-unknown-linux-musl --release; cargo test --target x86_64-unknown-linux-musl --release;"
+      with:
+        #args: cd integration-test && cargo fmt -- --check && cargo clippy -- -Dwarnings && cargo test
+        args: "cd integration-test; rustup target list; rustc --version; cargo build --target x86_64-unknown-linux-musl --release; cargo test --target x86_64-unknown-linux-musl --release;"
     #- name: Build
     #  uses: stevenleadbeater/rust-musl-builder@master
     #  run: |
