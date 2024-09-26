@@ -1,8 +1,8 @@
 on:
-  push:
-    # Sequence of patterns matched against refs/tags
-    tags:
-      - 'v*' # Push events to matching v*, i.e. v1.0, v20.15.10
+  #push:
+  #  # Sequence of patterns matched against refs/tags
+  #  tags:
+  #    - 'v*' # Push events to matching v*, i.e. v1.0, v20.15.10
   workflow_dispatch:
 
 name: Windows Upload Release Asset
@@ -25,17 +25,6 @@ jobs:
       
       - name: Tarball Assets # This would actually build your project, using zip for an example artifact
         run: tar -czf windows_x86_64.tgz -C target/x86_64-pc-windows-msvc/release/ libstdf_reader.dll libstdf_reader.lib libstdf_reader.rlib stdf2csv stdf2text stdf2ufile stdf2ui
-        
-      - name: Create Release
-        id: create_release
-        uses: actions/create-release@v1.1.4
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # This token is provided by Actions, you do not need to create your own token
-        with:
-          tag_name: ${{ github.ref }}
-          release_name: Release ${{ github.ref }}
-          draft: false
-          prerelease: false
 
       - name: Upload Release Asset
         id: upload-release-asset 
