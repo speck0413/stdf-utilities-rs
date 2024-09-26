@@ -17,6 +17,7 @@ jobs:
     steps:
     - uses: actions/checkout@v3
     - name: Build
+      uses: stevenleadbeater/rust-musl-builder@master
       run: |
         rustc --version
         cargo build --verbose -r --target=x86_64-unknown-linux-musl
