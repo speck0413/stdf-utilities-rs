@@ -7,9 +7,10 @@ on:
     branches: [ "master" ]
   workflow_dispatch:
     inputs:
-      type: string
-      required: false
-      default: "master"
+      branch:
+        description: 'Branch to build'
+        required: false
+        default: 'master'
 
 env:
   CARGO_TERM_COLOR: always
