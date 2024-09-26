@@ -16,6 +16,7 @@ jobs:
       - name: Build project # This would actually build your project, using zip for an example artifact
         run: |
           echo "Building for Linux"
+          rustc --version
           cargo build --verbose -r --target=x86_64-pc-windows-msvc
           echo "tarballing"
           tar -czf linux_musl.tgz -C target/x86_64-pc-windows-msvc/release/ libstdf_reader.dll libstdf_reader.lib libstdf_reader.rlib stdf2csv stdf2text stdf2ufile stdf2ui
