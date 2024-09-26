@@ -31,7 +31,7 @@ jobs:
     - name: Build project # This would actually build your project, using zip for an example artifact
       run: |
         sudo apt-get install -y musl
-        rustup add target add x86_64-unknown-linux-musl
+        rustup target add x86_64-unknown-linux-musl
         echo "Building for Linux"
         rustc --version
         cargo build --verbose -r --target=x86_64-unknown-linux-musl
