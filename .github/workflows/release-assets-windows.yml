@@ -4,18 +4,21 @@ on:
     tags:
     - 'v*' # Push events to matching v*, i.e. v1.0, v20.15.10
 
-name: Upload Release Asset
+name: Upload Windows Release Asset
 
 jobs:
   build:
     name: Upload Release Asset
-    runs-on: [ubuntu-latest, windows-latest]
+    runs-on: windows-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
       - name: Build project # This would actually build your project, using zip for an example artifact
         run: |
-          zip --junk-paths my-artifact README.md
+          echo "Building for Linux"
+          cargo build --verbose -r --target=x86_64-pc-windows-msvc
+          echo "tarballing"
+          tar -czf linux_musl.tgz -C target/x86_64-pc-windows-msvc/release/ libstdf_reader.dll libstdf_reader.lib libstdf_reader.rlib stdf2csv stdf2text stdf2ufile stdf2ui
       - name: Create Release
         id: create_release
         uses: actions/create-release@v1
@@ -33,6 +36,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }} # This pulls from the CREATE RELEASE step above, referencing it's ID to get its outputs object, which include a `upload_url`. See this blog post for more info: https://jasonet.co/posts/new-features-of-github-actions/#passing-data-to-future-steps 
-          asset_path: ./my-artifact.zip
-          asset_name: my-artifact.zip
+          asset_path: ./linux_musl.tgz
+          asset_name: linux_musl.tgz
           asset_content_type: application/zip
