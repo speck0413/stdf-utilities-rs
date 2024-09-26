@@ -1,5 +1,5 @@
 on:
-  push:
+  #push:
     # Sequence of patterns matched against refs/tags
     #tags:
     #  - 'v*' # Push events to matching v*, i.e. v1.0, v20.15.10
@@ -30,10 +30,21 @@ jobs:
 
       - name: Tarball Assets # This would actually build your project, using zip for an example artifact
         run: tar -czf linux_musl.tgz -C target/x86_64-unknown-linux-musl/release/ libstdf_reader.a libstdf_reader.rlib stdf2csv stdf2text stdf2ufile stdf2ui
+
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1.1.4
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # This token is provided by Actions, you do not need to create your own token
+        with:
+          tag_name: ${{ github.ref }}
+          release_name: Release ${{ github.ref }}
+          draft: false
+          prerelease: false
       
       - name: Upload Release Asset
         id: upload-release-asset 
-        uses: actions/upload-release-asset@v1
+        uses: softprops/action-gh-release@v2
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
