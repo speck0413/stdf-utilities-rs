@@ -12,10 +12,17 @@ jobs:
     name: Upload Release Asset
     runs-on: ubuntu-latest
     steps:
+
       - name: Checkout code
         uses: actions/checkout@v4
         with:
           ref: ${{ github.ref }}
+
+      - name: Build Cache
+        uses: actions/cache@v3
+        with:
+          path: |
+            ./target/
 
       - name: Install Dependencies # This would actually build your project, using zip for an example artifact
         run: |

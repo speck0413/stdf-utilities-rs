@@ -28,5 +28,8 @@ jobs:
       run: |
         rustc --version
         cargo build --verbose -r --target=x86_64-pc-windows-msvc
+        dir target
+        dir target\x86_64-pc-windows-msvc\
+        dir target\x86_64-pc-windows-msvc\release
     - name: Run tests
       run: cargo test --verbose -r --target=x86_64-pc-windows-msvc
