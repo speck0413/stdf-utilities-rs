@@ -16,7 +16,7 @@ env:
   CARGO_TERM_COLOR: always
 
 jobs:
-  build:
+  linux_build:
     name: Linux Build and Test
 
     runs-on: ubuntu-latest
@@ -60,7 +60,7 @@ jobs:
         files: ./linux_musl.tgz
 
 
-  build:
+  windows_build:
 
     runs-on: windows-latest
 
