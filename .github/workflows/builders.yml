@@ -1,0 +1,101 @@
+name: Build and Test
+
+on:
+  push:
+    branches: [ "master" ]
+  pull_request:
+    branches: [ "master" ]
+  workflow_dispatch:
+    inputs:
+      logLevel:
+        description: 'Log level'
+        required: false
+        default: 'info'
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  build:
+    name: Linux Build and Test
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        ref: ${{ github.ref }}
+
+    - name: Build Cache
+      uses: actions/cache@v3
+      with:
+        key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+        path: |
+          ./target/
+          
+    - name: Install Dependencies
+      run: |
+        sudo apt-get install -y musl musl-tools musl-dev
+        rustup target add x86_64-unknown-linux-musl
+    
+    - name: Rust Version
+      run: rustc --version
+
+    - name: Build Project
+      run: cargo build --verbose -r --target=x86_64-unknown-linux-musl
+
+    - name: Test Project
+      run: cargo test --verbose -r --target=x86_64-unknown-linux-musl
+
+    - name: Tarball Assets
+      if: startsWith(github.event.ref, 'refs/tags/v')
+      run: tar -czf linux_musl.tgz -C target/x86_64-unknown-linux-musl/release/ libstdf_reader.a libstdf_reader.rlib stdf2csv stdf2text stdf2ufile stdf2ui
+
+    - name: Upload Release Asset
+      if: startsWith(github.event.ref, 'refs/tags/v')
+      uses: softprops/action-gh-release@v2
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        files: ./linux_musl.tgz
+
+
+  build:
+
+    runs-on: windows-latest
+
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        ref: ${{ github.ref }}
+
+    - name: Build Cache
+      uses: actions/cache@v3
+      with:
+        key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+        path: |
+          ./target/
+    
+    - name: Rust Version
+      run: rustc --version
+
+    - name: Build
+      run: cargo build --verbose -r --target=x86_64-pc-windows-msvc
+
+    - name: Run tests
+      run: cargo test --verbose -r --target=x86_64-pc-windows-msvc
+
+    - name: Tarball Assets
+      if: startsWith(github.event.ref, 'refs/tags/v')
+      run: tar -czf windows_x86_64.tgz -C target/x86_64-pc-windows-msvc/release/ libstdf_reader.dll libstdf_reader.lib libstdf_reader.rlib stdf2csv stdf2text stdf2ufile stdf2ui
+
+    - name: Upload Release Asset
+      if: startsWith(github.event.ref, 'refs/tags/v')
+      uses: softprops/action-gh-release@v2
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }} # This pulls from the CREATE RELEASE step above, referencing it's ID to get its outputs object, which include a `upload_url`. See this blog post for more info: https://jasonet.co/posts/new-features-of-github-actions/#passing-data-to-future-steps 
+        asset_path: ./windows_x86_64.tgz
+        asset_name: windows_x86_64.tgz
+        asset_content_type: application/zip
